@@ -1,5 +1,6 @@
 package com.yupi.project.common;
 
+import com.example.myapicommon.exception.ErrorCode;
 import lombok.Data;
 
 import java.io.Serializable;

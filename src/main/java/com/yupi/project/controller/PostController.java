@@ -2,20 +2,19 @@ package com.yupi.project.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.myapicommon.exception.BusinessException;
+import com.example.myapicommon.exception.ErrorCode;
+import com.example.myapicommon.model.entity.Post;
+import com.example.myapicommon.model.entity.User;
 import com.yupi.project.annotation.AuthCheck;
 import com.yupi.project.common.BaseResponse;
 import com.yupi.project.common.DeleteRequest;
-import com.yupi.project.common.ErrorCode;
 import com.yupi.project.common.ResultUtils;
 import com.yupi.project.constant.CommonConstant;
-import com.yupi.project.exception.BusinessException;
 import com.yupi.project.model.dto.post.PostAddRequest;
-import com.yupi.project.model.dto.post.PostDoThumbRequest;
 import com.yupi.project.model.dto.post.PostQueryRequest;
 import com.yupi.project.model.dto.post.PostUpdateRequest;
-import com.yupi.project.model.entity.Post;
-import com.yupi.project.model.entity.User;
-import com.yupi.project.model.vo.PostVO;
+
 import com.yupi.project.service.PostService;
 import com.yupi.project.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -25,11 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 /**
  * 帖子接口
@@ -57,6 +52,7 @@ public class PostController {
      * @return
      */
     @PostMapping("/add")
+    @AuthCheck(mustRole = "admin")
     public BaseResponse<Long> addPost(@RequestBody PostAddRequest postAddRequest, HttpServletRequest request) {
         if (postAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -83,6 +79,7 @@ public class PostController {
      * @return
      */
     @PostMapping("/delete")
+    @AuthCheck(mustRole = "admin")
     public BaseResponse<Boolean> deletePost(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -110,6 +107,7 @@ public class PostController {
      * @return
      */
     @PostMapping("/update")
+    @AuthCheck(mustRole = "admin")
     public BaseResponse<Boolean> updatePost(@RequestBody PostUpdateRequest postUpdateRequest,
                                             HttpServletRequest request) {
         if (postUpdateRequest == null || postUpdateRequest.getId() <= 0) {
@@ -141,6 +139,7 @@ public class PostController {
      * @return
      */
     @GetMapping("/get")
+    @AuthCheck(mustRole = "admin")
     public BaseResponse<Post> getPostById(long id) {
         if (id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -175,6 +174,7 @@ public class PostController {
      * @return
      */
     @GetMapping("/list/page")
+    @AuthCheck(mustRole = "admin")
     public BaseResponse<Page<Post>> listPostByPage(PostQueryRequest postQueryRequest, HttpServletRequest request) {
         if (postQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

@@ -1,6 +1,4 @@
-package com.yupi.project.exception;
-
-import com.yupi.project.common.ErrorCode;
+package com.example.myapicommon.exception;
 
 /**
  * 自定义异常类

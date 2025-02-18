@@ -1,0 +1,8 @@
+server:
+  port: 8123
+  servlet:
+    context-path: /api
+zhang:
+  client:
+    access-key: 123
+    secret-key: 321

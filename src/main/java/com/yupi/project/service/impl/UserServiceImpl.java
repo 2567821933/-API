@@ -1,19 +1,29 @@
 package com.yupi.project.service.impl;
 
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.yupi.project.common.ErrorCode;
-import com.yupi.project.exception.BusinessException;
+import com.example.myapicommon.exception.BusinessException;
+import com.example.myapicommon.exception.ErrorCode;
+import com.example.myapicommon.model.entity.InterfaceInfo;
+import com.example.myapicommon.model.entity.User;
+import com.example.myapicommon.model.entity.UserInterfaceInfo;
 import com.yupi.project.mapper.UserMapper;
-import com.yupi.project.model.entity.User;
+import com.yupi.project.service.InterfaceInfoService;
+import com.yupi.project.service.UserInterfaceInfoService;
 import com.yupi.project.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+
+import java.util.List;
 
 import static com.yupi.project.constant.UserConstant.ADMIN_ROLE;
 import static com.yupi.project.constant.UserConstant.USER_LOGIN_STATE;
@@ -32,10 +42,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Resource
     private UserMapper userMapper;
 
+    @Resource
+    private InterfaceInfoService interfaceInfoService;
+
+    @Resource
+    private UserInterfaceInfoService userInterfaceInfoService;
+
     /**
      * 盐值，混淆密码
      */
-    private static final String SALT = "yupi";
+    private static final String SALT = "zhang";
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -63,14 +79,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             }
             // 2. 加密
             String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
+            // 3. 分配 accessKey 和 secretKey
+            String accessKey = DigestUtil.md5Hex(SALT + userAccount + RandomUtil.randomNumbers(5));
+            String secretKey = DigestUtil.md5Hex(SALT + userAccount + RandomUtil.randomNumbers(8));
             // 3. 插入数据
             User user = new User();
             user.setUserAccount(userAccount);
             user.setUserPassword(encryptPassword);
+            user.setAccessKey(accessKey);
+            user.setSecretKey(secretKey);
             boolean saveResult = this.save(user);
             if (!saveResult) {
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败，数据库错误");
             }
+            // 初始化user_interface_info
+            saveInUserInterInfo(user.getId());
+
             return user.getId();
         }
     }
@@ -154,6 +178,39 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 移除登录态
         request.getSession().removeAttribute(USER_LOGIN_STATE);
         return true;
+    }
+
+    @Override
+    public User getUserByAK(String accessKey) {
+        if(StrUtil.isEmpty(accessKey)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"accessKey为空");
+        }
+        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+        userQueryWrapper.eq("accessKey",accessKey);
+        User user = getOne(userQueryWrapper);
+        if(user == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"没有对应的用户");
+        }
+        return user;
+    }
+
+    /**
+     * userInterfaceInfo 初始化
+     */
+    public void saveInUserInterInfo(Long userId) {
+
+        List<InterfaceInfo> list = interfaceInfoService.list();
+        for(InterfaceInfo interfaceInfo : list) {
+            UserInterfaceInfo userInterfaceInfo = new UserInterfaceInfo();
+            userInterfaceInfo.setUserId(userId);
+            userInterfaceInfo.setLeftNum(20);
+            userInterfaceInfo.setTotalNum(0);
+            userInterfaceInfo.setInterfaceInfoId(interfaceInfo.getId());
+            boolean save = userInterfaceInfoService.save(userInterfaceInfo);
+            if(!save) {
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "保存失败");
+            }
+        }
     }
 
 }

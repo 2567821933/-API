@@ -2,7 +2,7 @@ package com.yupi.project.service;
 
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.yupi.project.model.entity.User;
+import com.example.myapicommon.model.entity.User;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -56,4 +56,6 @@ public interface UserService extends IService<User> {
      * @return
      */
     boolean userLogout(HttpServletRequest request);
+
+    User getUserByAK(String accessKey);
 }

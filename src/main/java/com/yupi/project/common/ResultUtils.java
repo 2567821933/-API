@@ -1,5 +1,7 @@
 package com.yupi.project.common;
 
+import com.example.myapicommon.exception.ErrorCode;
+
 /**
  * 返回工具类
  *

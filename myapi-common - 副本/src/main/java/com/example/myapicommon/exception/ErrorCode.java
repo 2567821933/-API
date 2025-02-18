@@ -1,4 +1,4 @@
-package com.yupi.project.common;
+package com.example.myapicommon.exception;
 
 /**
  * 错误码
