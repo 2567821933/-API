@@ -83,7 +83,9 @@ create table if not exists my_api.`user_sign_info`
 ) comment '用户签到表';
 
 
+use my_api;
 # 接口次数调用
+explain
 select interfaceInfoId, sum(totalNum) as totalNum
 from user_interface_info
 group by interfaceInfoId
